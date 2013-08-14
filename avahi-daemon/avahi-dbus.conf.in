@@ -7,9 +7,6 @@
   <policy user="@AVAHI_USER@">
     <allow own="org.freedesktop.Avahi"/>
   </policy>
-  <policy user="root">
-    <allow own="org.freedesktop.Avahi"/>
-  </policy>
 
   <!-- Allow anyone to invoke methods on Avahi server, except SetHostName -->
   <policy context="default">

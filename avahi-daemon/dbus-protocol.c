@@ -1051,7 +1051,7 @@ static int dbus_connect(void) {
     assert(!server->bus);
 
     dbus_error_init(&error);
-
+   
 #ifdef HAVE_DBUS_BUS_GET_PRIVATE    
     if (!(server->bus = dbus_bus_get_private(DBUS_BUS_SYSTEM, &error))) {
         assert(dbus_error_is_set(&error));
