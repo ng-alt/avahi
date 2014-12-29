@@ -1170,6 +1170,7 @@ static int drop_root(void) {
     struct group * gr;
     int r;
 
+#if 0
     if (!(pw = getpwnam(AVAHI_USER))) {
         avahi_log_error( "Failed to find user '"AVAHI_USER"'.");
         return -1;
@@ -1219,9 +1220,14 @@ static int drop_root(void) {
         return -1;
     }
 
+
     set_env("USER", pw->pw_name);
     set_env("LOGNAME", pw->pw_name);
     set_env("HOME", pw->pw_dir);
+#endif
+    set_env("USER", "root");
+    set_env("LOGNAME", "root");
+    set_env("HOME", "/");
 
     avahi_log_info("Successfully dropped root privileges.");
 
@@ -1240,6 +1246,7 @@ static int make_runtime_dir(void) {
     struct group * gr;
     struct stat st;
 
+#if 0
     if (!(pw = getpwnam(AVAHI_USER))) {
         avahi_log_error( "Failed to find user '"AVAHI_USER"'.");
         goto fail;
@@ -1252,12 +1259,14 @@ static int make_runtime_dir(void) {
 
     u = umask(0000);
     reset_umask = 1;
+#endif
 
     if (mkdir(AVAHI_DAEMON_RUNTIME_DIR, 0755) < 0 && errno != EEXIST) {
         avahi_log_error("mkdir(\""AVAHI_DAEMON_RUNTIME_DIR"\"): %s", strerror(errno));
         goto fail;
     }
 
+#if 0
     chown(AVAHI_DAEMON_RUNTIME_DIR, pw->pw_uid, gr->gr_gid);
 
     if (stat(AVAHI_DAEMON_RUNTIME_DIR, &st) < 0) {
@@ -1269,6 +1278,8 @@ static int make_runtime_dir(void) {
         avahi_log_error("Failed to create runtime directory "AVAHI_DAEMON_RUNTIME_DIR".");
         goto fail;
     }
+
+#endif
 
     r = 0;
 
@@ -1338,7 +1349,6 @@ int main(int argc, char *argv[]) {
     int wrote_pid_file = 0;
 
     avahi_set_log_function(log_function);
-
     init_rand_seed();
 
     avahi_server_config_init(&config.server_config);
@@ -1430,7 +1440,7 @@ int main(int argc, char *argv[]) {
 
         if (load_config_file(&config) < 0)
             goto finish;
-
+#if 0
         if (config.daemonize) {
             daemon_retval_init();
 
@@ -1451,7 +1461,7 @@ int main(int argc, char *argv[]) {
 
             /* Child */
         }
-
+#endif
         if (config.use_syslog || config.daemonize)
             daemon_log_use = DAEMON_LOG_SYSLOG;
 

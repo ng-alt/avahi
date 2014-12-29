@@ -960,7 +960,7 @@ static int drop_privs(void) {
     gr = NULL;
 
     /* Get user/group ID */
-
+#if 0
     if (!no_drop_root) {
 
         if (!(pw = getpwnam(AVAHI_AUTOIPD_USER))) {
@@ -976,6 +976,7 @@ static int drop_privs(void) {
         daemon_log(LOG_INFO, "Found user '"AVAHI_AUTOIPD_USER"' (UID %lu) and group '"AVAHI_AUTOIPD_GROUP"' (GID %lu).", (unsigned long) pw->pw_uid, (unsigned long) gr->gr_gid);
     }
 
+#endif
     /* Create directory */
     u = umask(0000);
     r = mkdir(AVAHI_IPDATA_DIR, 0755);
