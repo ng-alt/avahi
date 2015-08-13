@@ -406,12 +406,6 @@ if test "x$have_kqueue" = "xyes" ; then
     AC_DEFINE([HAVE_KQUEUE], 1, [Enable BSD kqueue() usage])
 fi
 
-IT_PROG_INTLTOOL([0.35.0])
-GETTEXT_PACKAGE=avahi
-AC_SUBST([GETTEXT_PACKAGE])
-AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
-AM_GLIB_GNU_GETTEXT
-
 avahilocaledir='${prefix}/${DATADIRNAME}/locale'
 AC_SUBST(avahilocaledir)
 
@@ -1088,6 +1082,15 @@ avahi-compat-howl/samples/Makefile
 avahi-autoipd/Makefile
 avahi-ui/Makefile
 po/Makefile.in
+avahi-client.pc
+avahi-compat-howl.pc
+avahi-compat-libdns_sd.pc
+avahi-core.pc
+avahi-glib.pc
+avahi-gobject.pc
+avahi-qt3.pc
+avahi-qt4.pc
+avahi-ui.pc
 ])
 AC_OUTPUT
 

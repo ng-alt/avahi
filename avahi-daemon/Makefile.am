@@ -32,11 +32,11 @@ introspectiondir=$(pkgdatadir)/introspection
 AM_CFLAGS+= \
 	-DAVAHI_DAEMON_RUNTIME_DIR=\"$(avahi_runtime_dir)/avahi-daemon/\" \
 	-DAVAHI_SOCKET=\"$(avahi_socket)\" \
-	-DAVAHI_SERVICE_DIR=\"$(servicedir)\" \
-	-DAVAHI_CONFIG_FILE=\"$(pkgsysconfdir)/avahi-daemon.conf\" \
-	-DAVAHI_HOSTS_FILE=\"$(pkgsysconfdir)/hosts\" \
+	-DAVAHI_SERVICE_DIR=\"/etc/avahi/services\" \
+	-DAVAHI_CONFIG_FILE=\"/etc/avahi/avahi-daemon.conf\" \
+	-DAVAHI_HOSTS_FILE=\"/etc/avahi/hosts\" \
 	-DAVAHI_DBUS_INTROSPECTION_DIR=\"$(introspectiondir)\" \
-	-DAVAHI_CONFIG_DIR=\"$(pkgsysconfdir)\"
+	-DAVAHI_CONFIG_DIR=\"/etc/avahi\"
 
 sbin_PROGRAMS = \
 	avahi-daemon

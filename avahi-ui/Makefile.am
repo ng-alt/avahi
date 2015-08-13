@@ -61,7 +61,6 @@ endif
 
 bin_PROGRAMS = bssh
 desktop_DATA += bssh.desktop bvnc.desktop
-@INTLTOOL_DESKTOP_RULE@
 
 bssh_SOURCES = bssh.c
 bssh_CFLAGS = $(AM_CFLAGS) $(GTK20_CFLAGS)
@@ -83,6 +82,5 @@ endif # HAVE_GLIB
 endif
 endif
 
-@INTLTOOL_DESKTOP_RULE@
 
 CLEANFILES = $(desktop_DATA) $(desktop_DATA_in)

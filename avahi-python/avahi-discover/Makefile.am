@@ -41,7 +41,6 @@ if HAVE_GDBM
 pythonscripts += \
 	avahi-discover
 desktop_DATA += avahi-discover.desktop
-@INTLTOOL_DESKTOP_RULE@
 avahi_discover_PYTHON += __init__.py SimpleGladeApp.py
 endif
 
@@ -49,7 +48,6 @@ if HAVE_DBM
 pythonscripts += \
 	avahi-discover
 desktop_DATA += avahi-discover.desktop
-@INTLTOOL_DESKTOP_RULE@
 avahi_discover_PYTHON += __init__.py SimpleGladeApp.py
 endif
 
