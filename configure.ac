@@ -57,6 +57,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_GCC_TRADITIONAL
 
+AM_PROG_AR
 AM_PROG_CC_C_O
 
 # -fstack-protector
@@ -406,11 +407,10 @@ if test "x$have_kqueue" = "xyes" ; then
     AC_DEFINE([HAVE_KQUEUE], 1, [Enable BSD kqueue() usage])
 fi
 
-IT_PROG_INTLTOOL([0.35.0])
 GETTEXT_PACKAGE=avahi
 AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
-AM_GLIB_GNU_GETTEXT
+AM_GNU_GETTEXT
 
 avahilocaledir='${prefix}/${DATADIRNAME}/locale'
 AC_SUBST(avahilocaledir)

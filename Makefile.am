@@ -69,14 +69,12 @@ SUBDIRS = \
 	avahi-python \
 	examples \
 	man \
-	tests \
 	service-type-database \
 	avahi-compat-libdns_sd \
 	avahi-compat-howl \
 	avahi-autoipd \
 	avahi-ui \
-	avahi-ui-sharp \
-	po
+	avahi-ui-sharp
 
 DX_INPUT = \
 	$(srcdir)/avahi-common/address.h \
