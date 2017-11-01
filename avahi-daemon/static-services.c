@@ -49,7 +49,6 @@
 
 #include "main.h"
 #include "static-services.h"
-#include "../../../../acos/include/ambitCfg.h"
 
 typedef struct StaticService StaticService;
 typedef struct StaticServiceGroup StaticServiceGroup;
@@ -528,7 +527,6 @@ static void XMLCALL xml_cdata(void *data, const XML_Char *s, int len) {
     switch (u->current_tag) {
         case XML_TAG_NAME:
             u->group->name = append_cdata(u->group->name, s, len);
-            u->group->name=strdup(AMBIT_PRODUCT_NAME);
             break;
 
         case XML_TAG_TYPE:
