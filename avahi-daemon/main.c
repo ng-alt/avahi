@@ -26,7 +26,6 @@
 #include <string.h>
 #include <signal.h>
 #include <errno.h>
-#include <string.h>
 #include <unistd.h>
 #include <grp.h>
 #include <pwd.h>
@@ -39,6 +38,11 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/socket.h>
+
+//Edison add nvram
+#include <unistd.h>
+#include <bcmnvram.h>
+#include "shared.h"
 
 #ifdef HAVE_INOTIFY
 #include <sys/inotify.h>
@@ -76,6 +80,7 @@
 #include "simple-protocol.h"
 #include "static-services.h"
 #include "static-hosts.h"
+#include "cnames.h"
 #include "ini-file-parser.h"
 #include "sd-daemon.h"
 
@@ -359,6 +364,9 @@ static void server_callback(AvahiServer *s, AvahiServerState state, void *userda
 
             static_service_add_to_server();
             static_hosts_add_to_server();
+	    llmnr_cnames_add_to_server();	//Edison
+            cnames_add_to_server();
+
 
             remove_dns_server_entry_groups();
 
@@ -377,6 +385,8 @@ static void server_callback(AvahiServer *s, AvahiServerState state, void *userda
             static_service_remove_from_server();
             static_hosts_remove_from_server();
             remove_dns_server_entry_groups();
+            cnames_remove_from_server();
+	    llmnr_cnames_remove_from_server();	//Edison
 
             n = avahi_alternative_host_name(avahi_server_get_host_name(s));
 
@@ -406,6 +416,8 @@ static void server_callback(AvahiServer *s, AvahiServerState state, void *userda
             static_service_remove_from_server();
             static_hosts_remove_from_server();
             remove_dns_server_entry_groups();
+            cnames_remove_from_server();
+            llmnr_cnames_remove_from_server();	//Edison
 
             break;
 
@@ -619,6 +631,36 @@ static int load_config_file(DaemonConfig *c) {
                     avahi_strfreev(e);
 
                     c->server_config.browse_domains = filter_duplicate_domains(c->server_config.browse_domains);
+                } else if (strcasecmp(p->key, "aliases") == 0) {
+                    char **e, **t;
+
+                    e = avahi_split_csv(p->value);
+
+                    for (t = e; *t; t++) {
+                        if (!avahi_is_valid_host_name(*t)) {
+                            avahi_log_error("Invalid host name \"%s\" for key \"%s\" in group \"%s\"\n", *t, p->key, g->name);
+                            avahi_strfreev(e);
+                            goto finish;
+                        }
+                    }
+
+                    avahi_strfreev(c->server_config.aliases);
+                    c->server_config.aliases = e;
+                } else if (strcasecmp(p->key, "aliases_llmnr") == 0) {
+                    char **e, **t;
+
+                    e = avahi_split_csv(p->value);
+
+                    for (t = e; *t; t++) {
+                        if (!avahi_is_valid_host_name(*t)) {
+                            avahi_log_error("Invalid host name \"%s\" for key \"%s\" in group \"%s\"\n", *t, p->key, g->name);
+                            avahi_strfreev(e);
+                            goto finish;
+                        }
+                    }
+
+                    avahi_strfreev(c->server_config.aliases_llmnr);
+                    c->server_config.aliases_llmnr = e;
                 } else if (strcasecmp(p->key, "use-ipv4") == 0)
                     c->server_config.use_ipv4 = is_yes(p->value);
                 else if (strcasecmp(p->key, "use-ipv6") == 0)
@@ -965,6 +1007,14 @@ static void reload_config(void) {
     static_service_add_to_server();
     static_hosts_add_to_server();
 
+    cnames_register(config.server_config.aliases);
+    cnames_add_to_server();
+
+    llmnr_cnames_register(config.server_config.aliases_llmnr);
+    llmnr_cnames_add_to_server();	//Edison
+
+    
+
     if (resolv_conf_entry_group)
         avahi_s_entry_group_reset(resolv_conf_entry_group);
 
@@ -1200,6 +1250,9 @@ static int run_server(DaemonConfig *c) {
     static_hosts_load(0);
 #endif
 
+    cnames_register(config.server_config.aliases);
+    llmnr_cnames_register(config.server_config.aliases_llmnr);	//Edison
+
     if (!(avahi_server = avahi_server_new(poll_api, &c->server_config, server_callback, c, &error))) {
         avahi_log_error("Failed to create server: %s", avahi_strerror(error));
         goto finish;
@@ -1236,6 +1289,12 @@ finish:
 
     static_hosts_remove_from_server();
     static_hosts_free_all();
+
+    cnames_remove_from_server();
+    cnames_free_all();
+
+    llmnr_cnames_remove_from_server();	//Edison
+    llmnr_cnames_free_all();
 
     remove_dns_server_entry_groups();
 
@@ -1291,9 +1350,16 @@ static int drop_root(void) {
     struct passwd *pw;
     struct group * gr;
     int r;
+    
+    
+//Edison modify username 20131023
+    char dut_user[128];
+    memset(dut_user, 0, 128);
+    
+    strncpy(dut_user, nvram_safe_get("http_username"), 128);
 
-    if (!(pw = getpwnam(AVAHI_USER))) {
-        avahi_log_error( "Failed to find user '"AVAHI_USER"'.");
+    if (!(pw = getpwnam(dut_user))) {
+	avahi_log_error( "Failed to find user '%s'.",dut_user);
         return -1;
     }
 
@@ -1302,9 +1368,9 @@ static int drop_root(void) {
         return -1;
     }
 
-    avahi_log_info("Found user '"AVAHI_USER"' (UID %lu) and group '"AVAHI_GROUP"' (GID %lu).", (unsigned long) pw->pw_uid, (unsigned long) gr->gr_gid);
+    avahi_log_info("Found user '%s' (UID %lu) and group '"AVAHI_GROUP"' (GID %lu).",dut_user ,(unsigned long) pw->pw_uid, (unsigned long) gr->gr_gid);
 
-    if (initgroups(AVAHI_USER, gr->gr_gid) != 0) {
+    if (initgroups(dut_user, gr->gr_gid) != 0) {
         avahi_log_error("Failed to change group list: %s", strerror(errno));
         return -1;
     }
@@ -1362,14 +1428,20 @@ static int make_runtime_dir(void) {
     struct group * gr;
     struct stat st;
 
-    if (!(pw = getpwnam(AVAHI_USER))) {
-        avahi_log_error( "Failed to find user '"AVAHI_USER"'.");
-        goto fail;
+//Edison modify username 20131023
+    char dut_user[128];
+    memset(dut_user, 0, 128);
+    
+    strncpy(dut_user, nvram_safe_get("http_username"), 128);
+
+    if (!(pw = getpwnam(dut_user))) {
+	avahi_log_error( "Failed to find user '%s'.",dut_user);
+        return -1;
     }
 
     if (!(gr = getgrnam(AVAHI_GROUP))) {
         avahi_log_error( "Failed to find group '"AVAHI_GROUP"'.");
-        goto fail;
+        return -1;
     }
 
     u = umask(0000);
