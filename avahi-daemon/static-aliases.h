@@ -1,5 +1,5 @@
-#ifndef foocnameshfoo
-#define foocnameshfoo
+#ifndef foostaticaliaseshfoo
+#define foostaticaliaseshfoo
 
 /***
   This file is part of avahi.
@@ -20,15 +20,9 @@
   USA.
 ***/
 
-void cnames_register(char **aliases);
-void cnames_free_all(void);
-void cnames_add_to_server(void);
-void cnames_remove_from_server(void);
-
-void llmnr_cnames_register(char **aliases_llmnr);
-void llmnr_cnames_free_all(void);
-void llmnr_cnames_add_to_server(void);
-void llmnr_cnames_remove_from_server(void);
-
+void static_aliases_register(const AvahiServerConfig *config);
+void static_aliases_free_all(void);
+void static_aliases_add_to_server(void);
+void static_aliases_remove_from_server(void);
 
 #endif

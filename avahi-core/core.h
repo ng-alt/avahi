@@ -65,12 +65,11 @@ typedef struct AvahiServerConfig {
     int disable_publishing;           /**< Disable publishing of any record */
     int allow_point_to_point;         /**< Enable publishing on POINTOPOINT interfaces */
     int publish_a_on_ipv6;            /**< Publish an IPv4 A RR on IPv6 sockets */
-    int publish_aaaa_on_ipv4;         /**< Publish an IPv4 A RR on IPv6 sockets */
+    int publish_aaaa_on_ipv4;         /**< Publish an IPv6 AAAA RR on IPv4 sockets */
     unsigned n_cache_entries_max;     /**< Maximum number of cache entries per interface */
     AvahiUsec ratelimit_interval;     /**< If non-zero, rate-limiting interval parameter. */
     unsigned ratelimit_burst;         /**< If ratelimit_interval is non-zero, rate-limiting burst parameter. */
     char **aliases;                   /**< Additional names to publish as CNAME for this host. */
-    char **aliases_llmnr;             /**< Additional names to publish as llmnr CNAME for this host. */
 } AvahiServerConfig;
 
 /** Allocate a new mDNS responder object. */
@@ -140,8 +139,6 @@ void avahi_server_set_data(AvahiServer *s, void* userdata);
 
 /** Return the current state of the server object */
 AvahiServerState avahi_server_get_state(AvahiServer *s);
-
-int setup_llmnr_sockets(AvahiServer *s);
 
 /** Callback prototype for avahi_server_dump() */
 typedef void (*AvahiDumpCallback)(const char *text, void* userdata);

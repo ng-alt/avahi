@@ -40,6 +40,12 @@
     </option>
 
     <option>
+      <p><opt>host-name-from-machine-id=</opt> Takes a boolean
+      value ("yes" or "no"). If set to "yes" avahi-daemon
+      will use the machine-id as name on the LAN.</p>
+    </option>
+
+    <option>
       <p><opt>domain-name=</opt> Set the default domain name avahi-daemon
       tries to register its host name and services on the LAN in. If
       omitted defaults to ".local".</p>
@@ -244,7 +250,7 @@
       useful for administrative purposes. This is recommended by the
       mDNS specification but not required. For the sake of privacy
       you might choose to disable this feature. Defaults to
-      "yes."</p>
+      "no".</p>
     </option>
 
     <option>
@@ -254,7 +260,7 @@
       might be useful for administrative purposes (i.e. browse for
       all PCs on the LAN), but is not required or recommended by any
       specification. Newer MacOS X releases register a service of
-      this type. Defaults to "yes".</p>
+      this type. Defaults to "no".</p>
     </option>
 
     <option>
@@ -354,10 +360,18 @@
       <p><opt>rlimit-stack=</opt> Value in bytes for RLIMIT_STACK (maximum size of the process stack). Sensible values are heavily system dependent.</p>
     </option>
 
-    <option>
-      <p><opt>rlimit-nproc=</opt> Value for RLIMIT_NPROC (number of process of user). avahi-daemon forks of a helper process on systems where <manref name="chroot" section="2"/> is available. Therefore this value should not be set below 2.</p>
-    </option>
-
+		<option>
+			<p><opt>rlimit-nproc=</opt> Value for RLIMIT_NPROC (max number of
+				processes a user can launch). avahi-daemon forks of a helper process on
+				systems where <manref name="chroot" section="2"/> is available
+				therefore this value should not be set below 2. Note that while the
+				process limit only applies to this process, the total count of
+				processes to reach that limit includes all processes on the system with
+				the same UID, including any containers without UID remapping (such as
+				lxd containers with security.privileged=true).  The default
+				configuration of 3 was removed to prevent problems in this
+				scenario.</p>
+		</option>
   </section>
 
   <section name="Authors">

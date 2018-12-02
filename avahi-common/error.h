@@ -52,7 +52,7 @@ enum {
 
     AVAHI_ERR_ACCESS_DENIED = -20,           /**< Access denied */
     AVAHI_ERR_INVALID_OPERATION = -21,       /**< Invalid operation */
-    AVAHI_ERR_DBUS_ERROR = -22,              /**< An unexpected D-Bus error occured */
+    AVAHI_ERR_DBUS_ERROR = -22,              /**< An unexpected D-Bus error occurred */
     AVAHI_ERR_DISCONNECTED = -23,            /**< Daemon connection failed */
     AVAHI_ERR_NO_MEMORY = -24,               /**< Memory exhausted */
     AVAHI_ERR_INVALID_OBJECT = -25,          /**< The object passed to this function was invalid */
@@ -87,7 +87,6 @@ enum {
     AVAHI_ERR_INVALID_ARGUMENT = -51,        /**< Invalid argument */
     AVAHI_ERR_IS_EMPTY = -52,                /**< Is empty */
     AVAHI_ERR_NO_CHANGE = -53,               /**< The requested operation is invalid because it is redundant */
-    AVAHI_ERR_INVALID_GROUP = -54,           /**< New entry is requested to be published with invalid group */
 
     /****
      ****    IF YOU ADD A NEW ERROR CODE HERE, PLEASE DON'T FORGET TO ADD
@@ -97,7 +96,7 @@ enum {
      ****    Also remember to update the MAX value below.
      ****/
 
-    AVAHI_ERR_MAX = -55
+    AVAHI_ERR_MAX = -54
 };
 
 /** Return a human readable error string for the specified error code */

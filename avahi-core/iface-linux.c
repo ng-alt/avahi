@@ -104,8 +104,8 @@ static void netlink_callback(AvahiNetlink *nl, struct nlmsghdr *n, void* userdat
         hw->flags_ok =
             (ifinfomsg->ifi_flags & IFF_UP) &&
             (!m->server->config.use_iff_running || (ifinfomsg->ifi_flags & IFF_RUNNING)) &&
-            !(ifinfomsg->ifi_flags & IFF_LOOPBACK) &&
-            (ifinfomsg->ifi_flags & IFF_MULTICAST) &&
+            ((ifinfomsg->ifi_flags & IFF_LOOPBACK) ||
+             (ifinfomsg->ifi_flags & IFF_MULTICAST)) &&
             (m->server->config.allow_point_to_point || !(ifinfomsg->ifi_flags & IFF_POINTOPOINT));
 
         /* Handle interface attributes */
@@ -149,8 +149,7 @@ static void netlink_callback(AvahiNetlink *nl, struct nlmsghdr *n, void* userdat
          * it is Avahi will start to announce its records on this
          * interface and send out queries for subscribed records on
          * it */
-        avahi_hw_interface_check_relevant(hw, AVAHI_MDNS);
-        avahi_hw_interface_check_relevant(hw, AVAHI_LLMNR);
+        avahi_hw_interface_check_relevant(hw);
 
         /* Update any associated RRs of this interface. (i.e. the
          * _workstation._tcp record containing the MAC address) */
@@ -205,7 +204,7 @@ static void netlink_callback(AvahiNetlink *nl, struct nlmsghdr *n, void* userdat
 
             switch(a->rta_type) {
 
-                case IFA_ADDRESS:
+                case IFA_LOCAL:
 
                     if ((rlocal.proto == AVAHI_PROTO_INET6 && RTA_PAYLOAD(a) != 16) ||
                         (rlocal.proto == AVAHI_PROTO_INET && RTA_PAYLOAD(a) != 4))
@@ -216,7 +215,7 @@ static void netlink_callback(AvahiNetlink *nl, struct nlmsghdr *n, void* userdat
 
                     break;
 
-                case IFA_LOCAL:
+                case IFA_ADDRESS:
 
                     /* Fill in local address data. Usually this is
                      * preferable over IFA_ADDRESS if both are set,
@@ -277,8 +276,7 @@ static void netlink_callback(AvahiNetlink *nl, struct nlmsghdr *n, void* userdat
          * attached relevant. Since we migh have added or removed an
          * address, let's have it check again whether the interface is
          * now relevant */
-        avahi_interface_check_relevant(i, AVAHI_MDNS);
-        avahi_interface_check_relevant(i, AVAHI_LLMNR);
+        avahi_interface_check_relevant(i);
 
         /* Update any associated RRs, like A or AAAA for our new/removed address */
         avahi_interface_update_rrs(i, 0);
@@ -314,8 +312,7 @@ static void netlink_callback(AvahiNetlink *nl, struct nlmsghdr *n, void* userdat
             m->list_complete = 1;
 
             /* So let's check if any interfaces are relevant now */
-            avahi_interface_monitor_check_relevant(m, AVAHI_MDNS);
-            avahi_interface_monitor_check_relevant(m, AVAHI_LLMNR);
+            avahi_interface_monitor_check_relevant(m);
 
             /* And update all RRs attached to any interface */
             avahi_interface_monitor_update_rrs(m, 0);

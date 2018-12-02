@@ -30,7 +30,6 @@
 typedef struct AvahiSEntryGroup AvahiSEntryGroup;
 
 #include <avahi-common/cdecl.h>
-#include <avahi-common/defs.h>
 #include <avahi-core/core.h>
 
 AVAHI_C_DECL_BEGIN
@@ -44,7 +43,7 @@ typedef void (*AvahiSEntryGroupCallback) (AvahiServer *s, AvahiSEntryGroup *g, A
  * the current iteration. It is not safe to call any other
  * avahi_server_xxx() function during the iteration. If the last entry
  * has been read, NULL is returned. */
-const AvahiRecord *avahi_server_iterate(AvahiServer *s, AvahiSEntryGroup *g, void **state, AvahiPublishProtocol proto);
+const AvahiRecord *avahi_server_iterate(AvahiServer *s, AvahiSEntryGroup *g, void **state);
 
 /** Create a new entry group. The specified callback function is
  * called whenever the state of the group changes. Use entry group
@@ -107,17 +106,9 @@ int avahi_server_add_cname(
     AvahiIfIndex interface,
     AvahiProtocol protocol,
     AvahiPublishFlags flags,
-    uint32_t ttl,
-    const char *name);
-
-int avahi_server_add_llmnr_cname(
-    AvahiServer *s,
-    AvahiSEntryGroup *g,
-    AvahiIfIndex interface,
-    AvahiProtocol protocol,
-    AvahiPublishFlags flags,
-    uint32_t ttl,
-    const char *name);
+    const char *name,
+    const char *domain,
+    const char *cname);
 
 /** Add an DNS-SD service to the Server. This will add all required
  * RRs to the server. See avahi_server_add() for more information.  If

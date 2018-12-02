@@ -29,10 +29,10 @@ introspectiondir=$(datadir)/dbus-1/interfaces
 dbussystemservicesdir=$(datadir)/dbus-1/system-services
 
 AM_CFLAGS+= \
-	-DAVAHI_DAEMON_RUNTIME_DIR=\"/var/run/avahi-daemon/\" \
-	-DAVAHI_SOCKET=\"/var/run/avahi-daemon/socket\" \
-	-DAVAHI_SERVICE_DIR=\"/tmp/avahi/services\" \
-	-DAVAHI_CONFIG_FILE=\"/tmp/avahi/avahi-daemon.conf\" \
+	-DAVAHI_DAEMON_RUNTIME_DIR=\"$(avahi_runtime_dir)/avahi-daemon/\" \
+	-DAVAHI_SOCKET=\"$(avahi_socket)\" \
+	-DAVAHI_SERVICE_DIR=\"$(servicedir)\" \
+	-DAVAHI_CONFIG_FILE=\"$(pkgsysconfdir)/avahi-daemon.conf\" \
 	-DAVAHI_HOSTS_FILE=\"$(pkgsysconfdir)/hosts\" \
 	-DAVAHI_DBUS_INTROSPECTION_DIR=\"$(introspectiondir)\" \
 	-DAVAHI_CONFIG_DIR=\"$(pkgsysconfdir)\"
@@ -50,7 +50,7 @@ avahi_daemon_SOURCES = \
 	simple-protocol.c simple-protocol.h \
 	static-services.c static-services.h \
 	static-hosts.c static-hosts.h \
-	cnames.c cnames.h \
+	static-aliases.c static-aliases.h \
 	ini-file-parser.c ini-file-parser.h \
 	setproctitle.c setproctitle.h \
 	sd-daemon.h sd-daemon.c \
@@ -170,7 +170,7 @@ xmllint:
 	done
 
 install-data-local:
-	test -z "$(localstatedir)/run" || $(mkdir_p) "$(DESTDIR)$(localstatedir)/run"
+	test -z "$(avahi_runtime_dir)" || $(MKDIR_P) "$(DESTDIR)$(avahi_runtime_dir)"
 
 update-systemd:
 	curl http://cgit.freedesktop.org/systemd/plain/src/sd-daemon.c > sd-daemon.c

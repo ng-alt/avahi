@@ -179,7 +179,7 @@ static int packet_add_probe_query(AvahiProbeScheduler *s, AvahiDnsPacket *p, Ava
         avahi_record_get_estimate_size(pj->record);
 
     /* Too large */
-    if (size > avahi_dns_packet_space(p))
+    if (size > avahi_dns_packet_reserved_space(p))
         return 0;
 
     /* Create the probe query */
@@ -188,6 +188,9 @@ static int packet_add_probe_query(AvahiProbeScheduler *s, AvahiDnsPacket *p, Ava
 
     b = !!avahi_dns_packet_append_key(p, k, 0);
     assert(b);
+
+    /* reserve size for record data */
+    avahi_dns_packet_reserve_size(p, avahi_record_get_estimate_size(pj->record));
 
     /* Mark this job for addition to the packet */
     pj->chosen = 1;
@@ -202,8 +205,11 @@ static int packet_add_probe_query(AvahiProbeScheduler *s, AvahiDnsPacket *p, Ava
             continue;
 
         /* This job wouldn't fit in */
-        if (avahi_record_get_estimate_size(pj->record) > avahi_dns_packet_space(p))
+        if (avahi_record_get_estimate_size(pj->record) > avahi_dns_packet_reserved_space(p))
             break;
+
+   /* reserve size for record data */
+   avahi_dns_packet_reserve_size(p, avahi_record_get_estimate_size(pj->record));
 
         /* Mark this job for addition to the packet */
         pj->chosen = 1;
@@ -262,7 +268,7 @@ static void elapse_callback(AVAHI_GCC_UNUSED AvahiTimeEvent *e, void* data) {
         if (b) {
             avahi_dns_packet_set_field(p, AVAHI_DNS_FIELD_NSCOUNT, 1);
             avahi_dns_packet_set_field(p, AVAHI_DNS_FIELD_QDCOUNT, 1);
-            avahi_interface_send_packet(s->interface, p, AVAHI_MDNS);
+            avahi_interface_send_packet(s->interface, p);
         } else
             avahi_log_warn("Probe record too large, cannot send");
 
@@ -314,7 +320,7 @@ static void elapse_callback(AVAHI_GCC_UNUSED AvahiTimeEvent *e, void* data) {
     avahi_dns_packet_set_field(p, AVAHI_DNS_FIELD_NSCOUNT, n);
 
     /* Send it now */
-    avahi_interface_send_packet(s->interface, p, AVAHI_MDNS);
+    avahi_interface_send_packet(s->interface, p);
     avahi_dns_packet_free(p);
 }
 

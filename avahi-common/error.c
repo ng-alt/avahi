@@ -51,7 +51,7 @@ const char *avahi_strerror(int error) {
 
         N_("Access denied"),
         N_("Invalid operation"),
-        N_("An unexpected D-Bus error occured"),
+        N_("An unexpected D-Bus error occurred"),
         N_("Daemon connection failed"),
         N_("Memory exhausted"),
         N_("The object passed in was not valid"),
@@ -85,8 +85,7 @@ const char *avahi_strerror(int error) {
         N_("Not permitted"),
         N_("Invalid argument"),
         N_("Is empty"),
-        N_("The requested operation is invalid because redundant"),
-        N_("New entry is requested to be published with invalid group")
+        N_("The requested operation is invalid because redundant")
     };
 
     avahi_init_i18n();

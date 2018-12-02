@@ -26,11 +26,15 @@
 #include <string.h>
 #include <signal.h>
 #include <errno.h>
+#include <string.h>
 #include <unistd.h>
 #include <grp.h>
 #include <pwd.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#ifdef HAVE_SYS_FILIO_H
+#include <sys/filio.h>
+#endif
 #include <stdio.h>
 #include <fcntl.h>
 #include <time.h>
@@ -38,14 +42,6 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/socket.h>
-
-//Edison add nvram
-#include <unistd.h>
-
-#ifndef MS_IPK
-#include <bcmnvram.h>
-#include "shared.h"
-#endif
 
 #ifdef HAVE_INOTIFY
 #include <sys/inotify.h>
@@ -72,6 +68,7 @@
 #include <avahi-core/publish.h>
 #include <avahi-core/dns-srv-rr.h>
 #include <avahi-core/log.h>
+#include <avahi-core/util.h>
 
 #ifdef ENABLE_CHROOT
 #include "chroot.h"
@@ -83,7 +80,7 @@
 #include "simple-protocol.h"
 #include "static-services.h"
 #include "static-hosts.h"
-#include "cnames.h"
+#include "static-aliases.h"
 #include "ini-file-parser.h"
 #include "sd-daemon.h"
 
@@ -95,9 +92,6 @@ AvahiServer *avahi_server = NULL;
 AvahiSimplePoll *simple_poll_api = NULL;
 static char *argv0 = NULL;
 int nss_support = 0;
-#ifdef MS_IPK
-char *http_username;
-#endif
 
 typedef enum {
     DAEMON_RUN,
@@ -122,6 +116,8 @@ typedef struct {
     unsigned n_entries_per_entry_group_max;
 #endif
     int drop_root;
+    char *user;
+    char *group;
     int set_rlimits;
 #ifdef ENABLE_CHROOT
     int use_chroot;
@@ -370,9 +366,7 @@ static void server_callback(AvahiServer *s, AvahiServerState state, void *userda
 
             static_service_add_to_server();
             static_hosts_add_to_server();
-	    llmnr_cnames_add_to_server();	//Edison
-            cnames_add_to_server();
-
+            static_aliases_add_to_server();
 
             remove_dns_server_entry_groups();
 
@@ -390,9 +384,8 @@ static void server_callback(AvahiServer *s, AvahiServerState state, void *userda
 
             static_service_remove_from_server();
             static_hosts_remove_from_server();
+            static_aliases_remove_from_server();
             remove_dns_server_entry_groups();
-            cnames_remove_from_server();
-	    llmnr_cnames_remove_from_server();	//Edison
 
             n = avahi_alternative_host_name(avahi_server_get_host_name(s));
 
@@ -421,9 +414,8 @@ static void server_callback(AvahiServer *s, AvahiServerState state, void *userda
 
             static_service_remove_from_server();
             static_hosts_remove_from_server();
+            static_aliases_remove_from_server();
             remove_dns_server_entry_groups();
-            cnames_remove_from_server();
-            llmnr_cnames_remove_from_server();	//Edison
 
             break;
 
@@ -534,6 +526,9 @@ static int parse_command_line(DaemonConfig *c, int argc, char *argv[]) {
                 break;
             case OPTION_DEBUG:
                 c->debug = 1;
+#ifdef DAEMON_SET_VERBOSITY_AVAILABLE
+                daemon_set_verbosity(LOG_DEBUG);
+#endif
                 break;
             default:
                 return -1;
@@ -592,6 +587,29 @@ static int parse_usec(const char *s, AvahiUsec *u) {
 
     *u = k;
     return 0;
+}
+
+static char *get_machine_id(void) {
+    int fd;
+    char buf[32];
+
+    fd = open("/etc/machine-id", O_RDONLY|O_CLOEXEC|O_NOCTTY);
+    if (fd == -1 && errno == ENOENT)
+        fd = open("/var/lib/dbus/machine-id", O_RDONLY|O_CLOEXEC|O_NOCTTY);
+    if (fd == -1)
+        return NULL;
+
+    /* File is on a filesystem so we never get EINTR or partial reads */
+    if (read(fd, buf, sizeof buf) != sizeof buf) {
+        close(fd);
+        return NULL;
+    }
+    close(fd);
+
+    /* Contents can be lower, upper and even mixed case so normalize */
+    avahi_strdown(buf);
+
+    return avahi_strndup(buf, sizeof buf);
 }
 
 static int load_config_file(DaemonConfig *c) {
@@ -653,20 +671,7 @@ static int load_config_file(DaemonConfig *c) {
                     avahi_strfreev(c->server_config.aliases);
                     c->server_config.aliases = e;
                 } else if (strcasecmp(p->key, "aliases_llmnr") == 0) {
-                    char **e, **t;
-
-                    e = avahi_split_csv(p->value);
-
-                    for (t = e; *t; t++) {
-                        if (!avahi_is_valid_host_name(*t)) {
-                            avahi_log_error("Invalid host name \"%s\" for key \"%s\" in group \"%s\"\n", *t, p->key, g->name);
-                            avahi_strfreev(e);
-                            goto finish;
-                        }
-                    }
-
-                    avahi_strfreev(c->server_config.aliases_llmnr);
-                    c->server_config.aliases_llmnr = e;
+                    /* TODO: LLMNR, dummy for now */
                 } else if (strcasecmp(p->key, "use-ipv4") == 0)
                     c->server_config.use_ipv4 = is_yes(p->value);
                 else if (strcasecmp(p->key, "use-ipv6") == 0)
@@ -679,6 +684,15 @@ static int load_config_file(DaemonConfig *c) {
                     c->server_config.use_iff_running = is_yes(p->value);
                 else if (strcasecmp(p->key, "disallow-other-stacks") == 0)
                     c->server_config.disallow_other_stacks = is_yes(p->value);
+                else if (strcasecmp(p->key, "host-name-from-machine-id") == 0) {
+                    if (*(p->value) == 'y' || *(p->value) == 'Y') {
+                        char *machine_id = get_machine_id();
+                        if (machine_id != NULL) {
+                            avahi_free(c->server_config.host_name);
+                            c->server_config.host_name = machine_id;
+                        }
+                    }
+                }
 #ifdef HAVE_DBUS
                 else if (strcasecmp(p->key, "enable-dbus") == 0) {
 
@@ -773,6 +787,12 @@ static int load_config_file(DaemonConfig *c) {
 
                     c->n_entries_per_entry_group_max = k;
 #endif
+                } else if (strcasecmp(p->key, "user") == 0) {
+                    avahi_free(c->user);
+                    c->user = avahi_strdup(p->value);
+                } else if (strcasecmp(p->key, "group") == 0) {
+                    avahi_free(c->group);
+                    c->group = avahi_strdup(p->value);
                 } else {
                     avahi_log_error("Invalid configuration key \"%s\" in group \"%s\"\n", p->key, g->name);
                     goto finish;
@@ -1013,13 +1033,8 @@ static void reload_config(void) {
     static_service_add_to_server();
     static_hosts_add_to_server();
 
-    cnames_register(config.server_config.aliases);
-    cnames_add_to_server();
-
-    llmnr_cnames_register(config.server_config.aliases_llmnr);
-    llmnr_cnames_add_to_server();	//Edison
-
-    
+    static_aliases_register(NULL);
+    static_aliases_add_to_server();
 
     if (resolv_conf_entry_group)
         avahi_s_entry_group_reset(resolv_conf_entry_group);
@@ -1256,8 +1271,7 @@ static int run_server(DaemonConfig *c) {
     static_hosts_load(0);
 #endif
 
-    cnames_register(config.server_config.aliases);
-    llmnr_cnames_register(config.server_config.aliases_llmnr);	//Edison
+    static_aliases_register(&c->server_config);
 
     if (!(avahi_server = avahi_server_new(poll_api, &c->server_config, server_callback, c, &error))) {
         avahi_log_error("Failed to create server: %s", avahi_strerror(error));
@@ -1296,11 +1310,8 @@ finish:
     static_hosts_remove_from_server();
     static_hosts_free_all();
 
-    cnames_remove_from_server();
-    cnames_free_all();
-
-    llmnr_cnames_remove_from_server();	//Edison
-    llmnr_cnames_free_all();
+    static_aliases_remove_from_server();
+    static_aliases_free_all();
 
     remove_dns_server_entry_groups();
 
@@ -1355,32 +1366,25 @@ finish:
 static int drop_root(void) {
     struct passwd *pw;
     struct group * gr;
+    const char *user, *group;
     int r;
-    
-    
-//Edison modify username 20131023
-    char dut_user[128];
-    memset(dut_user, 0, 128);
 
-#ifdef MS_IPK
-    strncpy(dut_user,http_username, 128);
-#else    
-    strncpy(dut_user, nvram_safe_get("http_username"), 128);
-#endif
+    user = config.user ? config.user : AVAHI_USER;
+    group = config.group ? config.group : AVAHI_GROUP;
 
-    if (!(pw = getpwnam(dut_user))) {
-	avahi_log_error( "Failed to find user '%s'.",dut_user);
+    if (!(pw = getpwnam(user))) {
+        avahi_log_error( "Failed to find user '%s'.", user);
         return -1;
     }
 
-    if (!(gr = getgrnam(AVAHI_GROUP))) {
-        avahi_log_error( "Failed to find group '"AVAHI_GROUP"'.");
+    if (!(gr = getgrnam(group))) {
+        avahi_log_error( "Failed to find group '%s'.", group);
         return -1;
     }
 
-    avahi_log_info("Found user '%s' (UID %lu) and group '"AVAHI_GROUP"' (GID %lu).",dut_user ,(unsigned long) pw->pw_uid, (unsigned long) gr->gr_gid);
+    avahi_log_info("Found user '%s' (UID %lu) and group '%s' (GID %lu).", user, (unsigned long) pw->pw_uid, group, (unsigned long) gr->gr_gid);
 
-    if (initgroups(dut_user, gr->gr_gid) != 0) {
+    if (initgroups(user, gr->gr_gid) != 0) {
         avahi_log_error("Failed to change group list: %s", strerror(errno));
         return -1;
     }
@@ -1437,25 +1441,19 @@ static int make_runtime_dir(void) {
     struct passwd *pw;
     struct group * gr;
     struct stat st;
+    const char *user, *group;
 
-//Edison modify username 20131023
-    char dut_user[128];
-    memset(dut_user, 0, 128);
+    user = config.user ? config.user : AVAHI_USER;
+    group = config.group ? config.group : AVAHI_GROUP;
 
-#ifdef MS_IPK
-    strncpy(dut_user, http_username, 128);
-#else    
-    strncpy(dut_user, nvram_safe_get("http_username"), 128);
-#endif
-
-    if (!(pw = getpwnam(dut_user))) {
-	avahi_log_error( "Failed to find user '%s'.",dut_user);
-        return -1;
+    if (!(pw = getpwnam(user))) {
+        avahi_log_error( "Failed to find user '%s'.", user);
+        goto fail;
     }
 
-    if (!(gr = getgrnam(AVAHI_GROUP))) {
-        avahi_log_error( "Failed to find group '"AVAHI_GROUP"'.");
-        return -1;
+    if (!(gr = getgrnam(group))) {
+        avahi_log_error( "Failed to find group '%s'.", group);
+        goto fail;
     }
 
     u = umask(0000);
@@ -1550,27 +1548,6 @@ int main(int argc, char *argv[]) {
     init_rand_seed();
 
     avahi_server_config_init(&config.server_config);
-#ifdef MS_IPK
-   //add for read  http_username
-    FILE *fp;
-    int f_size;
-    char filename[128];
-    sprintf(filename, "/tmp/avahi/http_username");
-    fp = fopen(filename, "r");
-    if (fp == NULL){
-    printf("fail to open file!\n");
-	return NULL;
-    }
-    fseek(fp,0,SEEK_END);
-    f_size = ftell(fp);
-    http_username=avahi_malloc(f_size+1);
-    memset(http_username, 0, f_size+1);
-    rewind(fp);
-    fread(http_username, 1, f_size, fp);
-    http_username[f_size-1]=0;
-    printf("http_username=%s\n",http_username);
-    fclose(fp);
-#endif
     config.command = DAEMON_RUN;
     config.daemonize = 0;
     config.config_file = NULL;
@@ -1583,6 +1560,8 @@ int main(int argc, char *argv[]) {
 #endif
 
     config.drop_root = 1;
+    config.user = NULL;
+    config.group = NULL;
     config.set_rlimits = 1;
 #ifdef ENABLE_CHROOT
     config.use_chroot = 1;
@@ -1753,6 +1732,8 @@ finish:
 
     avahi_server_config_free(&config.server_config);
     avahi_free(config.config_file);
+    avahi_free(config.user);
+    avahi_free(config.group);
     avahi_strfreev(config.publish_dns_servers);
     avahi_strfreev(resolv_conf_name_servers);
     avahi_strfreev(resolv_conf_search_domains);

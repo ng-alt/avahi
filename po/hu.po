@@ -1,22 +1,23 @@
-# Hungarian translation of avahi
-# Copyright (C) 2008, 2009, Free Software Foundation, Inc.
-# This file is distributed under the same license as the avahi package.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
 #
-# Gabor Kelemen <kelemeng@gnome.hu>, 2008, 2009, 2010.
+# Translators:
+# Gabor Kelemen <kelemeng at ubuntu dot com>, 2016.
 msgid ""
 msgstr ""
-"Project-Id-Version: avahi master\n"
+"Project-Id-Version: Avahi\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-02 03:23+0200\n"
-"PO-Revision-Date: 2009-03-22 12:57+0100\n"
-"Last-Translator: Gabor Kelemen <kelemeng@gnome.hu>\n"
-"Language-Team: Hungarian <gnome@fsf.hu>\n"
+"POT-Creation-Date: 2016-09-20 08:58+0200\n"
+"PO-Revision-Date: 2016-09-20 08:59+0200\n"
+"Last-Translator: Gabor Kelemen <kelemeng at ubuntu dot com>\n"
+"Language-Team: Hungarian <openscope at googlegroups dot com>\n"
+"hu/)\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: KBabel 1.11.4\n"
+"X-Generator: Lokalize 1.5\n"
 
 #: ../avahi-common/error.c:30
 msgid "OK"
@@ -107,7 +108,7 @@ msgid "Invalid operation"
 msgstr "Érvénytelen művelet"
 
 #: ../avahi-common/error.c:54
-msgid "An unexpected D-Bus error occured"
+msgid "An unexpected D-Bus error occurred"
 msgstr "Váratlan D-Bus hiba történt"
 
 #: ../avahi-common/error.c:55
@@ -239,13 +240,13 @@ msgid "Invalid Error Code"
 msgstr "Érvénytelen hibakód"
 
 #: ../avahi-discover-standalone/avahi-discover.ui.h:1
-#: ../avahi-python/avahi-discover/avahi-discover.py:76
-msgid "<i>No service currently selected.</i>"
-msgstr "<i>Nincs kiválasztva szolgáltatás.</i>"
-
-#: ../avahi-discover-standalone/avahi-discover.ui.h:2
 msgid "Avahi Discovery"
 msgstr "Avahi feltérképezés"
+
+#: ../avahi-discover-standalone/avahi-discover.ui.h:2
+#: ../avahi-python/avahi-discover/avahi-discover.py:77
+msgid "<i>No service currently selected.</i>"
+msgstr "<i>Nincs kiválasztva szolgáltatás.</i>"
 
 #: ../avahi-python/avahi-discover/avahi-discover.desktop.in.in.h:1
 msgid "Avahi Zeroconf Browser"
@@ -255,35 +256,35 @@ msgstr "Avahi Zeroconf-böngésző"
 msgid "Browse for Zeroconf services available on your network"
 msgstr "Zeroconf szolgáltatások keresése a hálózaton"
 
-#: ../avahi-python/avahi-discover/avahi-discover.py:224
+#: ../avahi-python/avahi-discover/avahi-discover.py:225
 msgid "TXT"
 msgstr "TXT"
 
-#: ../avahi-python/avahi-discover/avahi-discover.py:226
+#: ../avahi-python/avahi-discover/avahi-discover.py:227
 msgid "TXT Data:"
 msgstr "TXT adat:"
 
-#: ../avahi-python/avahi-discover/avahi-discover.py:226
+#: ../avahi-python/avahi-discover/avahi-discover.py:227
 msgid "empty"
 msgstr "üres"
 
-#: ../avahi-python/avahi-discover/avahi-discover.py:228
+#: ../avahi-python/avahi-discover/avahi-discover.py:229
 msgid "Service Type:"
 msgstr "Szolgáltatástípus:"
 
-#: ../avahi-python/avahi-discover/avahi-discover.py:229
+#: ../avahi-python/avahi-discover/avahi-discover.py:230
 msgid "Service Name:"
 msgstr "Szolgáltatásnév:"
 
-#: ../avahi-python/avahi-discover/avahi-discover.py:230
+#: ../avahi-python/avahi-discover/avahi-discover.py:231
 msgid "Domain Name:"
 msgstr "Tartománynév:"
 
-#: ../avahi-python/avahi-discover/avahi-discover.py:231
+#: ../avahi-python/avahi-discover/avahi-discover.py:232
 msgid "Interface:"
 msgstr "Csatoló:"
 
-#: ../avahi-python/avahi-discover/avahi-discover.py:232
+#: ../avahi-python/avahi-discover/avahi-discover.py:233
 msgid "Address:"
 msgstr "Cím:"
 
@@ -311,7 +312,7 @@ msgstr "Szolgáltatástípus"
 msgid "The service type of the selected service"
 msgstr "A kiválasztott szolgáltatás típusa"
 
-#: ../avahi-ui/avahi-ui.c:202 ../avahi-ui/avahi-ui.c:1023
+#: ../avahi-ui/avahi-ui.c:202 ../avahi-ui/avahi-ui.c:1035
 msgid "Service Name"
 msgstr "Szolgáltatásnév"
 
@@ -432,43 +433,52 @@ msgstr "Szolgáltatások tallózása a(z) <b>%s</b> tartományban:"
 msgid "Failed to create browser for %s: %s"
 msgstr "Nem sikerült tallózót létrehozni a következőhöz: %s: %s"
 
-#: ../avahi-ui/avahi-ui.c:903
+#: ../avahi-ui/avahi-ui.c:907
 #, c-format
 msgid "Failed to create resolver for %s of type %s in domain %s: %s"
 msgstr ""
 "Nem sikerült $%2s típusú feloldót létrehozni a következőhöz: $%1s a(z) $%3s "
 "tartományban: $%4s"
 
-#: ../avahi-ui/avahi-ui.c:978
+#: ../avahi-ui/avahi-ui.c:982
 #, c-format
 msgid "Failed to create domain browser: %s"
 msgstr "Nem sikerült tartománytallózót létrehozni: %s"
 
-#: ../avahi-ui/avahi-ui.c:989
+#: ../avahi-ui/avahi-ui.c:993
 msgid "Change domain"
 msgstr "Tartomány módosítása"
 
-#: ../avahi-ui/avahi-ui.c:1031 ../avahi-ui/avahi-ui.c:1162
+#: ../avahi-ui/avahi-ui.c:1043 ../avahi-ui/avahi-ui.c:1180
 msgid "Browsing..."
 msgstr "Tallózás…"
 
-#: ../avahi-ui/avahi-ui.c:1120
+#: ../avahi-ui/avahi-ui.c:1047 ../avahi-ui/bssh.c:149 ../avahi-ui/bssh.c:156
+#: ../avahi-ui/bssh.c:161
+msgid "_Cancel"
+msgstr "Mé_gse"
+
+#: ../avahi-ui/avahi-ui.c:1048
+msgid "_OK"
+msgstr "_OK"
+
+#: ../avahi-ui/avahi-ui.c:1134
 msgid "Initializing..."
 msgstr "Előkészítés…"
 
-#: ../avahi-ui/avahi-ui.c:1144
+#: ../avahi-ui/avahi-ui.c:1162
 msgid "Location"
 msgstr "Hely"
 
-#: ../avahi-ui/avahi-ui.c:1149 ../avahi-utils/avahi-browse.c:553
+#: ../avahi-ui/avahi-ui.c:1167 ../avahi-utils/avahi-browse.c:553
 msgid "Name"
 msgstr "Név"
 
-#: ../avahi-ui/avahi-ui.c:1154 ../avahi-utils/avahi-browse.c:553
+#: ../avahi-ui/avahi-ui.c:1172 ../avahi-utils/avahi-browse.c:553
 msgid "Type"
 msgstr "Típus"
 
-#: ../avahi-ui/avahi-ui.c:1166
+#: ../avahi-ui/avahi-ui.c:1184
 msgid "_Domain..."
 msgstr "_Tartomány…"
 
@@ -499,6 +509,10 @@ msgstr "Túl sok paraméter\n"
 #: ../avahi-ui/bssh.c:149
 msgid "Choose Shell Server"
 msgstr "Válassza ki a shell kiszolgálót"
+
+#: ../avahi-ui/bssh.c:149 ../avahi-ui/bssh.c:156 ../avahi-ui/bssh.c:161
+msgid "C_onnect"
+msgstr "Kapcs_olódás"
 
 #: ../avahi-ui/bssh.c:151
 msgid "Desktop"
@@ -547,7 +561,6 @@ msgstr "Avahi VNC-kiszolgálóböngésző"
 msgid "Browse for Zeroconf-enabled VNC Servers"
 msgstr "Zeroconf-képes VNC kiszolgálók keresése"
 
-# fixme: wtf?
 #: ../avahi-utils/avahi-browse.c:107
 #, c-format
 msgid ": All for now\n"
@@ -861,3 +874,4 @@ msgstr "Érvénytelen számú argumentum, pontosan egy szükséges.\n"
 #, c-format
 msgid "Host name successfully changed to %s\n"
 msgstr "A gépnév sikeresen módosítva a következőre: %s\n"
+

@@ -75,7 +75,8 @@ SUBDIRS = \
 	avahi-compat-howl \
 	avahi-autoipd \
 	avahi-ui \
-	avahi-ui-sharp
+	avahi-ui-sharp \
+	po
 
 DX_INPUT = \
 	$(srcdir)/avahi-common/address.h \

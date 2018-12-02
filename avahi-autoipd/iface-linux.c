@@ -141,7 +141,7 @@ static int process_nlmsg(struct nlmsghdr *n) {
             return 0;
 
         l = NLMSG_PAYLOAD(n, sizeof(*ifa));
-        a = IFLA_RTA(ifa);
+        a = IFA_RTA(ifa);
 
         while(RTA_OK(a, l)) {
 
@@ -215,7 +215,7 @@ static int process_response(int wait_for_done, unsigned seq) {
 
         ucred = (struct ucred*) CMSG_DATA(cmsghdr);
 
-        if (ucred->uid != 0)
+        if (ucred->pid != 0)
             return -1;
 
         bytes = (size_t) r;
